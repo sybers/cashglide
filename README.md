@@ -1,5 +1,70 @@
-# Vue 3 + TypeScript + Vite
+# CashGlide - Cashflow Analysis
 
-This template should help get you started developing with Vue 3 and TypeScript in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+A modern web application to visualize and analyze your cash flows. Track your revenues, investments, and expenses with interactive charts and detailed statistics.
 
-Learn more about the recommended Project Setup and IDE Support in the [Vue Docs TypeScript Guide](https://vuejs.org/guide/typescript/overview.html#project-setup).
+## Features
+
+- **Revenue Management**: Organize your income sources by categories and subcategories
+- **Investment Tracking**: Analyze your investments and their distribution
+- **Expense Management**: Categorize your expenses for better control
+- **Sankey Visualization**: Interactive flow chart to visualize money circulation
+- **Real-time Statistics**: Automatic calculations of totals and investment statistics
+- **Multi-currency Support**: Support for 8 major currencies (USD, EUR, GBP, JPY, AUD, CAD, CHF, CNY)
+- **Modern Interface**: Clean and responsive design with Tailwind CSS
+- **Data Persistence**: Automatic saving to localStorage
+
+## Tech Stack
+
+- **Vue 3** - Progressive JavaScript framework
+- **TypeScript** - Static typing for enhanced safety
+- **Vite** - Lightning-fast build tool
+- **Pinia** - Modern state management for Vue
+- **Plotly.js** - Interactive charting library
+- **Tailwind CSS** - Utility-first CSS framework
+- **VueUse** - Collection of Vue composables
+
+## Prerequisites
+
+- Node.js 18+
+- npm or yarn
+
+## Installation
+
+```bash
+# Clone the project
+git clone <repo-url>
+cd cashglide
+
+# Install dependencies
+npm install
+```
+
+## Development
+
+```bash
+# Start development server
+npm run dev
+```
+
+The application will be available at `http://localhost:5173`
+
+## Build
+
+```bash
+# Build for production
+npm run build
+
+# Preview production build
+npm run preview
+```
+
+## Usage
+
+1. **Select Currency**: Choose your currency from the dropdown in the top-right corner
+2. **Add Categories**: Create subcategories to organize your financial flows
+3. **Add Items**: Enter your revenues, investments, and expenses with their amounts
+4. **Visualize**: View the Sankey diagram and real-time statistics
+
+## License
+
+MIT
