@@ -82,6 +82,7 @@ function addSubCategory() {
       <SubCategory
         v-for="subCategory in category.subCategories"
         :key="subCategory.id"
+        :category-type="category.type"
         :sub-category="subCategory"
         :category-id="category.id"
         :currency="currency"

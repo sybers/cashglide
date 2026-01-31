@@ -58,13 +58,9 @@ function renderChart() {
   }]
 
   const layout: Partial<Plotly.Layout> = {
-    title: {
-      text: 'Cashflow Diagram',
-      font: { size: 18, color: '#475569' }
-    },
     font: { size: 12, color: '#64748b' },
     height: 600,
-    margin: { l: 20, r: 20, t: 60, b: 20 },
+    margin: { l: 20, r: 20, t: 20, b: 20 },
     paper_bgcolor: 'rgba(255,255,255,0)',
     plot_bgcolor: 'rgba(255,255,255,0)'
   }
@@ -95,6 +91,7 @@ watch(() => [cashflowStore.sankeyData, cashflowStore.currency], renderChart, { d
 
 <template>
   <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-6">
+    <h2 class="text-lg font-semibold text-slate-700 mb-6">Cashflow Diagram</h2>
     <div v-if="cashflowStore.sankeyData.nodes.length === 0" class="text-center text-slate-500 py-12">
       <svg class="w-16 h-16 mx-auto mb-4 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />

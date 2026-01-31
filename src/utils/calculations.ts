@@ -59,13 +59,13 @@ export function generateSankeyData(cashflowData: CashflowData): SankeyData {
   }
 
   // Calculate totals first
-  const revenues = cashflowData.categories.filter(c => c.type === 'revenue')
-  const investments = cashflowData.categories.filter(c => c.type === 'investment')
-  const expenses = cashflowData.categories.filter(c => c.type === 'expense')
+  const revenuesCategories = cashflowData.categories.filter(c => c.type === 'revenue')
+  const investmentsCategories = cashflowData.categories.filter(c => c.type === 'investment')
+  const expensesCategories = cashflowData.categories.filter(c => c.type === 'expense')
 
-  const totalRevenue = calculateCategoryTotal(revenues)
-  const totalInvestments = calculateCategoryTotal(investments)
-  const totalExpenses = calculateCategoryTotal(expenses)
+  const totalRevenue = calculateCategoryTotal(revenuesCategories)
+  const totalInvestments = calculateCategoryTotal(investmentsCategories)
+  const totalExpenses = calculateCategoryTotal(expensesCategories)
 
   // Main revenue node
   const revenueNodeIdx = addNode('Total Revenue', totalRevenue)
@@ -75,34 +75,36 @@ export function generateSankeyData(cashflowData: CashflowData): SankeyData {
   const expensesNodeIdx = addNode('Total Expenses', totalExpenses)
 
   // Process each category type
-  cashflowData.categories.forEach(category => {
-    if (category.type === 'revenue') {
-      category.subCategories.forEach(sub => {
-        const subTotal = calculateItemsTotal(sub.items)
-        if (subTotal > 0) {
-          const subNodeIdx = addNode(sub.name, subTotal)
-          links.push({ source: subNodeIdx, target: revenueNodeIdx, value: subTotal })
-        }
-      })
-    } else if (category.type === 'investment') {
-      category.subCategories.forEach(sub => {
-        const subTotal = calculateItemsTotal(sub.items)
-        if (subTotal > 0) {
-          const subNodeIdx = addNode(sub.name, subTotal)
-          links.push({ source: revenueNodeIdx, target: subNodeIdx, value: subTotal })
-          links.push({ source: subNodeIdx, target: investmentsNodeIdx, value: subTotal })
-        }
-      })
-    } else if (category.type === 'expense') {
-      category.subCategories.forEach(sub => {
-        const subTotal = calculateItemsTotal(sub.items)
-        if (subTotal > 0) {
-          const subNodeIdx = addNode(sub.name, subTotal)
-          links.push({ source: revenueNodeIdx, target: subNodeIdx, value: subTotal })
-          links.push({ source: subNodeIdx, target: expensesNodeIdx, value: subTotal })
-        }
-      })
-    }
+  revenuesCategories.forEach(category => {
+    category.subCategories.forEach(sub => {
+      const subTotal = calculateItemsTotal(sub.items)
+      if (subTotal > 0) {
+        const subNodeIdx = addNode(sub.name, subTotal)
+        links.push({ source: subNodeIdx, target: revenueNodeIdx, value: subTotal })
+      }
+    })
+  })
+
+  investmentsCategories.forEach(category => {
+    category.subCategories.forEach(sub => {
+      const subTotal = calculateItemsTotal(sub.items)
+      if (subTotal > 0) {
+        const subNodeIdx = addNode(sub.name, subTotal)
+        links.push({ source: revenueNodeIdx, target: subNodeIdx, value: subTotal })
+        links.push({ source: subNodeIdx, target: investmentsNodeIdx, value: subTotal })
+      }
+    })
+  });
+
+  expensesCategories.forEach(category => {
+    category.subCategories.forEach(sub => {
+      const subTotal = calculateItemsTotal(sub.items)
+      if (subTotal > 0) {
+        const subNodeIdx = addNode(sub.name, subTotal)
+        links.push({ source: subNodeIdx, target: expensesNodeIdx, value: subTotal })
+        links.push({ source: revenueNodeIdx, target: subNodeIdx, value: subTotal })
+      }
+    })
   })
 
   return { nodes, links }

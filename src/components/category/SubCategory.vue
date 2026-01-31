@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, nextTick } from 'vue'
 import type { SubCategory, CashflowItem } from '@/types'
 import CategoryItem from './CategoryItem.vue'
 import { calculateItemsTotal } from '@/utils/calculations'
@@ -7,6 +7,7 @@ import { calculateItemsTotal } from '@/utils/calculations'
 interface Props {
   subCategory: SubCategory
   categoryId: string
+  categoryType: 'revenue' | 'investment' | 'expense'
   currency: string
 }
 
@@ -21,25 +22,48 @@ interface Emits {
 const props = defineProps<Props>()
 const emit = defineEmits<Emits>()
 
+const buttonClasses = computed(() => {
+  switch (props.categoryType) {
+    case 'revenue':
+      return {
+        button: 'bg-emerald-400 hover:bg-emerald-500',
+      }
+    case 'investment':
+      return {
+        button: 'bg-sky-400 hover:bg-sky-500',
+      }
+    case 'expense':
+      return {
+        button: 'bg-rose-400 hover:bg-rose-500',
+      }
+  }
+})
+
 const isExpanded = ref(true)
 const isEditingName = ref(false)
 const editName = ref(props.subCategory.name)
 const newItemName = ref('')
 const newItemAmount = ref(0)
+const nameInput = ref<HTMLInputElement | null>(null)
 
 const total = computed(() => calculateItemsTotal(props.subCategory.items))
 
 function toggleExpand() {
-  isExpanded.value = !isExpanded.value
+  if (!isEditingName.value) {
+    isExpanded.value = !isExpanded.value
+  }
 }
 
-function startEditName() {
-  isEditingName.value = true
+async function startEditName() {
   editName.value = props.subCategory.name
+  isEditingName.value = true
+  await nextTick()
+  nameInput.value?.focus()
+  nameInput.value?.select()
 }
 
 function saveNameEdit() {
-  if (editName.value.trim()) {
+  if (editName.value.trim() && editName.value.trim() !== props.subCategory.name) {
     emit('updateName', editName.value.trim())
   }
   isEditingName.value = false
@@ -66,10 +90,10 @@ function handleDelete() {
 </script>
 
 <template>
-  <div class="border border-slate-200/50 rounded-xl overflow-hidden bg-white/50">
+  <div class="border border-slate-200/50 rounded-xl overflow-hidden bg-white/50 group/sub">
     <!-- Subcategory Header -->
     <div 
-      class="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-2.5 px-3 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors"
+      class="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-2 px-3 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors"
       @click="toggleExpand"
     >
       <div class="flex items-center gap-2 min-w-0">
@@ -83,66 +107,39 @@ function handleDelete() {
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
         </svg>
 
-        <template v-if="isEditingName">
-          <input
-            v-model="editName"
-            type="text"
-            class="flex-1 min-w-0 px-2 py-1 bg-white border border-slate-200 rounded-lg text-sm"
-            @click.stop
-            @keyup.enter="saveNameEdit"
-            @keyup.esc="cancelNameEdit"
-          />
-          <div class="flex gap-1" @click.stop>
-            <button
-              @click="saveNameEdit"
-              class="p-1.5 text-white bg-emerald-400 hover:bg-emerald-500 rounded-lg transition-colors"
-              title="Save"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-              </svg>
-            </button>
-            <button
-              @click="cancelNameEdit"
-              class="p-1.5 text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-lg transition-colors"
-              title="Cancel"
-            >
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
-        </template>
-        <template v-else>
-          <h4 class="font-medium text-slate-700 truncate">{{ subCategory.name }}</h4>
-        </template>
+        <input
+          v-if="isEditingName"
+          ref="nameInput"
+          v-model="editName"
+          type="text"
+          class="flex-1 min-w-0 px-2 py-0.5 -my-0.5 bg-white border border-sky-300 rounded-lg text-sm font-medium focus:ring-2 focus:ring-sky-300 focus:outline-none"
+          @click.stop
+          @blur="saveNameEdit"
+          @keyup.enter="saveNameEdit"
+          @keyup.esc="cancelNameEdit"
+        />
+        <h4
+          v-else
+          class="font-medium text-slate-700 truncate cursor-text hover:text-slate-900 border-b border-dashed border-slate-300 hover:border-sky-400 transition-colors"
+          @click.stop="startEditName"
+        >
+          {{ subCategory.name }}
+        </h4>
       </div>
 
       <span class="text-sm font-semibold text-slate-600 tabular-nums w-28 text-right">
         {{ new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(total) }}
       </span>
 
-      <div class="flex gap-1" @click.stop>
-        <button
-          v-if="!isEditingName"
-          @click="startEditName"
-          class="p-1.5 text-slate-400 hover:text-sky-500 hover:bg-sky-50 rounded-lg transition-colors"
-          title="Rename"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-          </svg>
-        </button>
-        <button
-          @click="handleDelete"
-          class="p-1.5 text-slate-400 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors"
-          title="Delete subcategory"
-        >
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-          </svg>
-        </button>
-      </div>
+      <button
+        @click.stop="handleDelete"
+        class="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors opacity-0 group-hover/sub:opacity-100"
+        title="Delete subcategory"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        </svg>
+      </button>
     </div>
 
     <!-- Subcategory Content -->
@@ -177,12 +174,13 @@ function handleDelete() {
           step="0.01"
           min="0"
           placeholder="0.00"
-          class="w-28 px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-300 focus:border-transparent tabular-nums text-right transition-all"
+          class="w-20 px-3 py-1.5 text-sm bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-sky-300 focus:border-transparent tabular-nums text-right transition-all"
           @keyup.enter="addItem"
         />
         <button
           @click="addItem"
-          class="p-1.5 text-white bg-sky-400 hover:bg-sky-500 rounded-lg transition-colors"
+          class="p-1.5 text-white rounded-lg transition-colors"
+          :class="buttonClasses.button"
           title="Add item"
         >
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
