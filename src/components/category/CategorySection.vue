@@ -32,24 +32,24 @@ const colorClasses = computed(() => {
   switch (props.category.type) {
     case 'revenue':
       return {
-        header: 'bg-green-50 border-green-200',
-        title: 'text-green-700',
-        button: 'bg-green-600 hover:bg-green-700',
-        total: 'text-green-600'
+        header: 'bg-emerald-50/80 border-emerald-200/50',
+        title: 'text-emerald-600',
+        button: 'bg-emerald-400 hover:bg-emerald-500',
+        total: 'text-emerald-500'
       }
     case 'investment':
       return {
-        header: 'bg-blue-50 border-blue-200',
-        title: 'text-blue-700',
-        button: 'bg-blue-600 hover:bg-blue-700',
-        total: 'text-blue-600'
+        header: 'bg-sky-50/80 border-sky-200/50',
+        title: 'text-sky-600',
+        button: 'bg-sky-400 hover:bg-sky-500',
+        total: 'text-sky-500'
       }
     case 'expense':
       return {
-        header: 'bg-red-50 border-red-200',
-        title: 'text-red-700',
-        button: 'bg-red-600 hover:bg-red-700',
-        total: 'text-red-600'
+        header: 'bg-rose-50/80 border-rose-200/50',
+        title: 'text-rose-500',
+        button: 'bg-rose-400 hover:bg-rose-500',
+        total: 'text-rose-500'
       }
   }
 })
@@ -63,14 +63,14 @@ function addSubCategory() {
 </script>
 
 <template>
-  <div class="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full flex flex-col">
+  <div class="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-5 h-full flex flex-col">
     <!-- Category Header -->
-    <div class="mb-4 pb-3 border-b" :class="colorClasses.header">
+    <div class="mb-4 p-4 rounded-xl border" :class="colorClasses.header">
       <h2 class="text-lg font-semibold mb-2" :class="colorClasses.title">
         {{ category.name }}
       </h2>
       <div class="flex justify-between items-center">
-        <span class="text-sm text-gray-600">Total:</span>
+        <span class="text-sm text-slate-500">Total:</span>
         <span class="text-xl font-bold" :class="colorClasses.total">
           {{ new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(total) }}
         </span>
@@ -92,26 +92,29 @@ function addSubCategory() {
         @delete-item="(itemId) => emit('deleteItem', subCategory.id, itemId)"
       />
 
-      <div v-if="category.subCategories.length === 0" class="text-center text-gray-400 py-8">
+      <div v-if="category.subCategories.length === 0" class="text-center text-slate-400 py-8">
         No subcategories yet. Add one below!
       </div>
     </div>
 
     <!-- Add Subcategory Form -->
-    <div class="flex gap-2 pt-3 border-t border-gray-200">
+    <div class="flex gap-2 pt-3 border-t border-slate-200/50">
       <input
         v-model="newSubCategoryName"
         type="text"
         :placeholder="`Add ${category.name.toLowerCase()} subcategory`"
-        class="flex-1 px-3 py-2 text-sm border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        class="flex-1 px-4 py-2 text-sm bg-slate-50/50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-300 focus:border-transparent transition-all"
         @keyup.enter="addSubCategory"
       />
       <button
         @click="addSubCategory"
-        class="px-4 py-2 text-sm text-white rounded"
+        class="p-2.5 text-white rounded-xl transition-colors"
         :class="colorClasses.button"
+        title="Add subcategory"
       >
-        Add
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
       </button>
     </div>
   </div>

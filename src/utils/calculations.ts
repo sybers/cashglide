@@ -40,7 +40,7 @@ export function calculateInvestmentStats(
 }
 
 export function generateSankeyData(cashflowData: CashflowData): SankeyData {
-  const nodes: { name: string }[] = []
+  const nodes: { name: string; value: number }[] = []
   const links: { source: number; target: number; value: number }[] = []
 
   // Node index tracking
@@ -48,22 +48,31 @@ export function generateSankeyData(cashflowData: CashflowData): SankeyData {
   const nodeMap = new Map<string, number>()
 
   // Helper to add node
-  const addNode = (name: string): number => {
+  const addNode = (name: string, value: number = 0): number => {
     if (nodeMap.has(name)) {
       return nodeMap.get(name)!
     }
     const index = nodeIndex++
-    nodes.push({ name })
+    nodes.push({ name, value })
     nodeMap.set(name, index)
     return index
   }
 
+  // Calculate totals first
+  const revenues = cashflowData.categories.filter(c => c.type === 'revenue')
+  const investments = cashflowData.categories.filter(c => c.type === 'investment')
+  const expenses = cashflowData.categories.filter(c => c.type === 'expense')
+
+  const totalRevenue = calculateCategoryTotal(revenues)
+  const totalInvestments = calculateCategoryTotal(investments)
+  const totalExpenses = calculateCategoryTotal(expenses)
+
   // Main revenue node
-  const revenueNodeIdx = addNode('Total Revenue')
+  const revenueNodeIdx = addNode('Total Revenue', totalRevenue)
 
   // Investment and expense target nodes
-  const investmentsNodeIdx = addNode('Total Investments')
-  const expensesNodeIdx = addNode('Total Expenses')
+  const investmentsNodeIdx = addNode('Total Investments', totalInvestments)
+  const expensesNodeIdx = addNode('Total Expenses', totalExpenses)
 
   // Process each category type
   cashflowData.categories.forEach(category => {
@@ -71,7 +80,7 @@ export function generateSankeyData(cashflowData: CashflowData): SankeyData {
       category.subCategories.forEach(sub => {
         const subTotal = calculateItemsTotal(sub.items)
         if (subTotal > 0) {
-          const subNodeIdx = addNode(sub.name)
+          const subNodeIdx = addNode(sub.name, subTotal)
           links.push({ source: subNodeIdx, target: revenueNodeIdx, value: subTotal })
         }
       })
@@ -79,7 +88,7 @@ export function generateSankeyData(cashflowData: CashflowData): SankeyData {
       category.subCategories.forEach(sub => {
         const subTotal = calculateItemsTotal(sub.items)
         if (subTotal > 0) {
-          const subNodeIdx = addNode(sub.name)
+          const subNodeIdx = addNode(sub.name, subTotal)
           links.push({ source: revenueNodeIdx, target: subNodeIdx, value: subTotal })
           links.push({ source: subNodeIdx, target: investmentsNodeIdx, value: subTotal })
         }
@@ -88,7 +97,7 @@ export function generateSankeyData(cashflowData: CashflowData): SankeyData {
       category.subCategories.forEach(sub => {
         const subTotal = calculateItemsTotal(sub.items)
         if (subTotal > 0) {
-          const subNodeIdx = addNode(sub.name)
+          const subNodeIdx = addNode(sub.name, subTotal)
           links.push({ source: revenueNodeIdx, target: subNodeIdx, value: subTotal })
           links.push({ source: subNodeIdx, target: expensesNodeIdx, value: subTotal })
         }

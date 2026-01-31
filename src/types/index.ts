@@ -31,6 +31,7 @@ export interface CashflowData {
 
 export interface SankeyNode {
   name: string
+  value: number
 }
 
 export interface SankeyLink {
