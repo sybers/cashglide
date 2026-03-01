@@ -7,17 +7,14 @@ import { storeToRefs } from "pinia";
 
 interface Props {
   item: CashflowItem;
-}
-
-interface Emits {
-  update: [updates: Partial<CashflowItem>];
-  delete: [];
+  categoryId: string;
+  subCategoryId: string;
 }
 
 const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
 
-const { currency } = storeToRefs(useCashflowStore());
+const store = useCashflowStore();
+const { currency } = storeToRefs(store);
 
 const {
   isEditing: isEditingName,
@@ -30,7 +27,9 @@ const {
   () => props.item.name,
   (value) => {
     const trimmed = value.trim();
-    if (trimmed && trimmed !== props.item.name) emit("update", { name: trimmed });
+    if (trimmed && trimmed !== props.item.name) {
+      store.updateItem(props.categoryId, props.subCategoryId, props.item.id, { name: trimmed });
+    }
   },
 );
 
@@ -44,13 +43,15 @@ const {
 } = useInlineEdit(
   () => props.item.amount,
   (value) => {
-    if (value !== props.item.amount) emit("update", { amount: value });
+    if (value !== props.item.amount) {
+      store.updateItem(props.categoryId, props.subCategoryId, props.item.id, { amount: value });
+    }
   },
 );
 
 function handleDelete() {
   if (confirm(`Delete "${props.item.name}"?`)) {
-    emit("delete");
+    store.deleteItem(props.categoryId, props.subCategoryId, props.item.id);
   }
 }
 </script>
@@ -59,7 +60,6 @@ function handleDelete() {
   <div
     class="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-1.5 px-3 hover:bg-slate-50/50 rounded-xl transition-colors group"
   >
-    <!-- Name -->
     <input
       v-if="isEditingName"
       ref="nameInput"
@@ -78,7 +78,6 @@ function handleDelete() {
       {{ item.name }}
     </span>
 
-    <!-- Amount -->
     <div class="relative">
       <template v-if="isEditingAmount">
         <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{{
@@ -105,7 +104,6 @@ function handleDelete() {
       </span>
     </div>
 
-    <!-- Delete button -->
     <button
       @click="handleDelete"
       class="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors opacity-0 group-hover:opacity-100"

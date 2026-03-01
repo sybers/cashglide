@@ -1,7 +1,24 @@
+const formatCache = new Map<string, Intl.NumberFormat>();
+
+function getFormatter(currency: string): Intl.NumberFormat {
+  if (!formatCache.has(currency)) {
+    formatCache.set(
+      currency,
+      new Intl.NumberFormat("en-US", {
+        style: "currency",
+        currency,
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      }),
+    );
+  }
+  return formatCache.get(currency)!;
+}
+
 export function getCurrencySymbol(currencyCode: string): string {
   try {
     return (
-      new Intl.NumberFormat("en-US", { style: "currency", currency: currencyCode })
+      getFormatter(currencyCode)
         .formatToParts(0)
         .find((part) => part.type === "currency")?.value ?? currencyCode
     );
@@ -11,12 +28,7 @@ export function getCurrencySymbol(currencyCode: string): string {
 }
 
 export function formatCurrency(amount: number, currency: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(amount);
+  return getFormatter(currency).format(amount);
 }
 
 export function formatPercentage(value: number): string {

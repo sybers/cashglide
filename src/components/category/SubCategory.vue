@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, nextTick } from "vue";
-import type { SubCategory, CashflowItem } from "@/types";
+import type { SubCategory } from "@/types";
 import CategoryItem from "./CategoryItem.vue";
 import { calculateItemsTotal } from "@/utils/calculations";
 import { formatCurrency } from "@/utils/formatting";
@@ -14,19 +14,11 @@ interface Props {
   categoryType: "revenue" | "investment" | "expense";
 }
 
-interface Emits {
-  updateName: [name: string];
-  delete: [];
-  addItem: [name: string, amount: number];
-  updateItem: [itemId: string, updates: Partial<CashflowItem>];
-  deleteItem: [itemId: string];
-}
-
 const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
 
+const store = useCashflowStore();
 const { button: buttonClass } = getCategoryStyles(props.categoryType);
-const { currency } = storeToRefs(useCashflowStore());
+const { currency } = storeToRefs(store);
 
 const isExpanded = ref(true);
 const isEditingName = ref(false);
@@ -52,8 +44,9 @@ async function startEditName() {
 }
 
 function saveNameEdit() {
-  if (editName.value.trim() && editName.value.trim() !== props.subCategory.name) {
-    emit("updateName", editName.value.trim());
+  const trimmed = editName.value.trim();
+  if (trimmed && trimmed !== props.subCategory.name) {
+    store.updateSubCategory(props.categoryId, props.subCategory.id, trimmed);
   }
   isEditingName.value = false;
 }
@@ -65,7 +58,12 @@ function cancelNameEdit() {
 
 function addItem() {
   if (newItemName.value.trim() && newItemAmount.value > 0) {
-    emit("addItem", newItemName.value.trim(), newItemAmount.value);
+    store.addItem(
+      props.categoryId,
+      props.subCategory.id,
+      newItemName.value.trim(),
+      newItemAmount.value,
+    );
     newItemName.value = "";
     newItemAmount.value = 0;
   }
@@ -73,14 +71,13 @@ function addItem() {
 
 function handleDelete() {
   if (confirm(`Delete subcategory "${props.subCategory.name}" and all its items?`)) {
-    emit("delete");
+    store.deleteSubCategory(props.categoryId, props.subCategory.id);
   }
 }
 </script>
 
 <template>
   <div class="border border-slate-200/50 rounded-xl overflow-hidden bg-white/50 group/sub">
-    <!-- Subcategory Header -->
     <div
       class="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-2 px-3 bg-slate-50/50 cursor-pointer hover:bg-slate-100/50 transition-colors"
       @click="toggleExpand"
@@ -136,21 +133,18 @@ function handleDelete() {
       </button>
     </div>
 
-    <!-- Subcategory Content -->
     <div v-show="isExpanded" class="border-t border-slate-200/50">
-      <!-- Items List -->
       <div v-if="subCategory.items.length > 0" class="divide-y divide-slate-100/50">
         <CategoryItem
           v-for="item in subCategory.items"
           :key="item.id"
           :item="item"
-          @update="(updates) => emit('updateItem', item.id, updates)"
-          @delete="emit('deleteItem', item.id)"
+          :category-id="categoryId"
+          :sub-category-id="subCategory.id"
         />
       </div>
       <div v-else class="py-4 text-center text-sm text-slate-400">No items yet</div>
 
-      <!-- Add Item Form -->
       <div
         class="grid grid-cols-[1fr_auto_auto] gap-2 items-center p-3 bg-slate-50/50 border-t border-slate-200/50"
       >
@@ -172,7 +166,7 @@ function handleDelete() {
         />
         <button
           @click="addItem"
-          class="p-1.5 text-white rounded-lg transition-colors"
+          class="p-1.5 rounded-lg transition-colors"
           :class="buttonClass"
           title="Add item"
         >

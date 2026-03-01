@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import type { Category, CashflowItem } from "@/types";
+import type { Category } from "@/types";
 import SubCategory from "./SubCategory.vue";
 import { calculateSubCategoriesTotal } from "@/utils/calculations";
 import { formatCurrency } from "@/utils/formatting";
@@ -8,24 +8,12 @@ import { getCategoryStyles } from "@/utils/categoryStyles";
 import { useCashflowStore } from "@/composables/useCashflow";
 import { storeToRefs } from "pinia";
 
-interface Props {
+const props = defineProps<{
   category: Category;
-}
+}>();
 
-interface Emits {
-  addSubCategory: [name: string];
-  updateSubCategory: [subCategoryId: string, name: string];
-  deleteSubCategory: [subCategoryId: string];
-  addItem: [subCategoryId: string, name: string, amount: number];
-  updateItem: [subCategoryId: string, itemId: string, updates: Partial<CashflowItem>];
-  deleteItem: [subCategoryId: string, itemId: string];
-}
-
-const props = defineProps<Props>();
-const emit = defineEmits<Emits>();
-
-const cashflowStore = useCashflowStore();
-const { currency } = storeToRefs(cashflowStore);
+const store = useCashflowStore();
+const { currency } = storeToRefs(store);
 
 const newSubCategoryName = ref("");
 const total = computed(() => calculateSubCategoriesTotal(props.category.subCategories));
@@ -33,7 +21,7 @@ const colorClasses = getCategoryStyles(props.category.type);
 
 function addSubCategory() {
   if (newSubCategoryName.value.trim()) {
-    emit("addSubCategory", newSubCategoryName.value.trim());
+    store.addSubCategory(props.category.id, newSubCategoryName.value.trim());
     newSubCategoryName.value = "";
   }
 }
@@ -41,9 +29,8 @@ function addSubCategory() {
 
 <template>
   <div
-    class="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-5 h-full flex flex-col"
+    class="bg-white/70 backdrop-blur-sm rounded-2xl border border-slate-200/50 p-5 flex flex-col"
   >
-    <!-- Category Header -->
     <div class="mb-4 p-4 rounded-xl border" :class="colorClasses.header">
       <h2 class="text-lg font-semibold mb-2" :class="colorClasses.title">
         {{ category.name }}
@@ -56,19 +43,13 @@ function addSubCategory() {
       </div>
     </div>
 
-    <!-- Subcategories List -->
-    <div class="flex-1 overflow-y-auto mb-4 space-y-3">
+    <div class="mb-4 space-y-3">
       <SubCategory
         v-for="subCategory in category.subCategories"
         :key="subCategory.id"
         :category-type="category.type"
         :sub-category="subCategory"
         :category-id="category.id"
-        @update-name="(name) => emit('updateSubCategory', subCategory.id, name)"
-        @delete="emit('deleteSubCategory', subCategory.id)"
-        @add-item="(name, amount) => emit('addItem', subCategory.id, name, amount)"
-        @update-item="(itemId, updates) => emit('updateItem', subCategory.id, itemId, updates)"
-        @delete-item="(itemId) => emit('deleteItem', subCategory.id, itemId)"
       />
 
       <div v-if="category.subCategories.length === 0" class="text-center text-slate-400 py-8">
@@ -76,7 +57,6 @@ function addSubCategory() {
       </div>
     </div>
 
-    <!-- Add Subcategory Form -->
     <div class="flex gap-2 pt-3 border-t border-slate-200/50">
       <input
         v-model="newSubCategoryName"
@@ -87,7 +67,7 @@ function addSubCategory() {
       />
       <button
         @click="addSubCategory"
-        class="p-2.5 text-white rounded-xl transition-colors"
+        class="p-2.5 rounded-xl transition-colors"
         :class="colorClasses.button"
         title="Add subcategory"
       >
