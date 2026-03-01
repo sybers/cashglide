@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "prepare": "pnpx git-simple-hooks",
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
@@ -36,10 +37,10 @@
     "vue-tsc": "^3.1.4"
   },
   "simple-git-hooks": {
-    "pre-commit": "pnpx lint-staged"
+    "pre-commit": "pnpm run lint-staged"
   },
   "lint-staged": {
-    "*.{vue,js,jsx,ts,tsx,mjs,cjs}": "pnpm run lint",
+    "*.{vue,js,jsx,ts,tsx,mjs,cjs}": "pnpm run lint:fix",
     "*": "pnpm run fmt --no-error-on-unmatched-pattern"
   }
 }
