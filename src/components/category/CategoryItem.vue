@@ -1,90 +1,64 @@
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
-import type { CashflowItem } from '@/types'
+import type { CashflowItem } from "@/types";
+import { getCurrencySymbol, formatCurrency } from "@/utils/formatting";
+import { useInlineEdit } from "@/composables/useInlineEdit";
+import { useCashflowStore } from "@/composables/useCashflow";
+import { storeToRefs } from "pinia";
 
 interface Props {
-  item: CashflowItem
-  currency: string
+  item: CashflowItem;
 }
 
 interface Emits {
-  update: [updates: Partial<CashflowItem>]
-  delete: []
+  update: [updates: Partial<CashflowItem>];
+  delete: [];
 }
 
-const props = defineProps<Props>()
-const emit = defineEmits<Emits>()
+const props = defineProps<Props>();
+const emit = defineEmits<Emits>();
 
-const isEditingName = ref(false)
-const isEditingAmount = ref(false)
-const editName = ref(props.item.name)
-const editAmount = ref(props.item.amount)
+const { currency } = storeToRefs(useCashflowStore());
 
-const nameInput = ref<HTMLInputElement | null>(null)
-const amountInput = ref<HTMLInputElement | null>(null)
+const {
+  isEditing: isEditingName,
+  editValue: editName,
+  inputRef: nameInput,
+  startEdit: startEditName,
+  save: saveName,
+  cancel: cancelEditName,
+} = useInlineEdit(
+  () => props.item.name,
+  (value) => {
+    const trimmed = value.trim();
+    if (trimmed && trimmed !== props.item.name) emit("update", { name: trimmed });
+  },
+);
 
-async function startEditName() {
-  editName.value = props.item.name
-  isEditingName.value = true
-  await nextTick()
-  nameInput.value?.focus()
-  nameInput.value?.select()
-}
-
-async function startEditAmount() {
-  editAmount.value = props.item.amount
-  isEditingAmount.value = true
-  await nextTick()
-  amountInput.value?.focus()
-  amountInput.value?.select()
-}
-
-function saveName() {
-  if (editName.value.trim() && editName.value !== props.item.name) {
-    emit('update', { name: editName.value.trim() })
-  }
-  isEditingName.value = false
-}
-
-function saveAmount() {
-  if (editAmount.value !== props.item.amount) {
-    emit('update', { amount: editAmount.value })
-  }
-  isEditingAmount.value = false
-}
-
-function cancelEditName() {
-  editName.value = props.item.name
-  isEditingName.value = false
-}
-
-function cancelEditAmount() {
-  editAmount.value = props.item.amount
-  isEditingAmount.value = false
-}
+const {
+  isEditing: isEditingAmount,
+  editValue: editAmount,
+  inputRef: amountInput,
+  startEdit: startEditAmount,
+  save: saveAmount,
+  cancel: cancelEditAmount,
+} = useInlineEdit(
+  () => props.item.amount,
+  (value) => {
+    if (value !== props.item.amount) emit("update", { amount: value });
+  },
+);
 
 function handleDelete() {
   if (confirm(`Delete "${props.item.name}"?`)) {
-    emit('delete')
-  }
-}
-
-function getCurrencySymbol(): string {
-  try {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: props.currency,
-    })
-      .formatToParts(0)
-      .find(part => part.type === 'currency')?.value || '$'
-  } catch {
-    return '$'
+    emit("delete");
   }
 }
 </script>
 
 <template>
-  <div class="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-1.5 px-3 hover:bg-slate-50/50 rounded-xl transition-colors group">
+  <div
+    class="grid grid-cols-[1fr_auto_auto] gap-3 items-center py-1.5 px-3 hover:bg-slate-50/50 rounded-xl transition-colors group"
+  >
     <!-- Name -->
     <input
       v-if="isEditingName"
@@ -107,7 +81,9 @@ function getCurrencySymbol(): string {
     <!-- Amount -->
     <div class="relative">
       <template v-if="isEditingAmount">
-        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{{ getCurrencySymbol() }}</span>
+        <span class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 text-sm">{{
+          getCurrencySymbol(currency)
+        }}</span>
         <input
           ref="amountInput"
           v-model.number="editAmount"
@@ -125,7 +101,7 @@ function getCurrencySymbol(): string {
         class="block text-sm text-slate-700 font-medium tabular-nums text-right cursor-text hover:text-slate-900 border-b border-dashed border-slate-300 hover:border-sky-400 transition-colors"
         @click="startEditAmount"
       >
-        {{ new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(item.amount) }}
+        {{ formatCurrency(item.amount, currency) }}
       </span>
     </div>
 
@@ -136,7 +112,12 @@ function getCurrencySymbol(): string {
       title="Delete"
     >
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+        />
       </svg>
     </button>
   </div>
