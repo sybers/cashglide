@@ -1,10 +1,13 @@
 import { ref, nextTick } from "vue";
 import type { Ref } from "vue";
 
-export function useInlineEdit<T>(getValue: () => T, onSave: (value: T) => void) {
+export function useInlineEdit<T>(
+  inputRef: Ref<HTMLInputElement | null>,
+  getValue: () => T,
+  onSave: (value: T) => void,
+) {
   const isEditing = ref(false);
   const editValue = ref(getValue()) as Ref<T>;
-  const inputRef = ref<HTMLInputElement | null>(null);
 
   async function startEdit() {
     editValue.value = getValue();

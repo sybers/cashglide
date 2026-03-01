@@ -4,6 +4,7 @@ import { getCurrencySymbol, formatCurrency } from "@/utils/formatting";
 import { useInlineEdit } from "@/composables/useInlineEdit";
 import { useCashflowStore } from "@/composables/useCashflow";
 import { storeToRefs } from "pinia";
+import { useTemplateRef } from "vue";
 
 interface Props {
   item: CashflowItem;
@@ -16,14 +17,15 @@ const props = defineProps<Props>();
 const store = useCashflowStore();
 const { currency } = storeToRefs(store);
 
+const nameInputRef = useTemplateRef<HTMLInputElement>("nameInput");
 const {
   isEditing: isEditingName,
   editValue: editName,
-  inputRef: nameInput,
   startEdit: startEditName,
   save: saveName,
   cancel: cancelEditName,
 } = useInlineEdit(
+  nameInputRef,
   () => props.item.name,
   (value) => {
     const trimmed = value.trim();
@@ -33,14 +35,15 @@ const {
   },
 );
 
+const amountInputRef = useTemplateRef<HTMLInputElement>("amountInput");
 const {
   isEditing: isEditingAmount,
   editValue: editAmount,
-  inputRef: amountInput,
   startEdit: startEditAmount,
   save: saveAmount,
   cancel: cancelEditAmount,
 } = useInlineEdit(
+  amountInputRef,
   () => props.item.amount,
   (value) => {
     if (value !== props.item.amount) {
