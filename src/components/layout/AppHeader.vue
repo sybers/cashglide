@@ -32,7 +32,7 @@ const currencies = ["USD", "EUR", "GBP", "JPY", "AUD", "CAD", "CHF", "CNY"];
           </select>
           <div class="flex items-center gap-2">
             <a
-              href="https://github.com/sybers"
+              href="https://github.com/sybers/cashglide"
               target="_blank"
               rel="noopener noreferrer"
               class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
