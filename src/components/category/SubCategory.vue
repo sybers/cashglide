@@ -119,7 +119,7 @@ function handleDelete() {
 
       <button
         @click.stop="handleDelete"
-        class="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors opacity-0 group-hover/sub:opacity-100"
+        class="p-1.5 text-slate-300 hover:text-rose-500 hover:bg-rose-50 rounded-lg transition-colors [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover/sub:opacity-100"
         title="Delete subcategory"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
